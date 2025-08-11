@@ -1,13 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Target, Map, Trophy, Play } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Footer } from '../components/layout/Footer';
 
-interface HomePageProps {
-  onNavigate: (page: string) => void;
-}
+export function HomePage() {
+  const navigate = useNavigate();
 
-export function HomePage({ onNavigate }: HomePageProps) {
   const features = [
     {
       icon: Target,
@@ -66,11 +65,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
               to accelerate your skill development journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="text-lg px-8 py-4" onClick={() => onNavigate('signup')}>
+              <Button size="lg" className="text-lg px-8 py-4" onClick={() => navigate('/signup')}>
                 Start Learning Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4" onClick={() => onNavigate('signin')}>
+              <Button variant="outline" size="lg" className="text-lg px-8 py-4" onClick={() => navigate('/signin')}>
                 Sign In
               </Button>
             </div>
@@ -152,7 +151,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             Join thousands of learners who are already using SkillPath to master new skills 
             and advance their careers.
           </p>
-          <Button variant="secondary" size="lg" className="text-lg px-8 py-4" onClick={() => onNavigate('signup')}>
+          <Button variant="secondary" size="lg" className="text-lg px-8 py-4" onClick={() => navigate('/signup')}>
             Create Your First Roadmap
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>

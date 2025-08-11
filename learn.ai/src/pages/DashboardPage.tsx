@@ -1,21 +1,82 @@
-import { Plus, BookOpen, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, BookOpen, TrendingUp, Clock, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { RoadmapCard } from '../components/dashboard/RoadmapCard';
-import { mockRoadmaps } from '../mockData/roadmaps';
 import { getCurrentUser } from '../utils/auth';
+import { getUserRoadmaps, getRoadmapStats, deleteRoadmap, Roadmap, RoadmapStats } from '../utils/roadmapApi';
 
-interface DashboardPageProps {
-  onNavigate: (page: string, roadmapId?: string) => void;
-}
-
-export function DashboardPage({ onNavigate }: DashboardPageProps) {
+export function DashboardPage() {
+  const navigate = useNavigate();
   const currentUser = getCurrentUser();
-  const totalSteps = mockRoadmaps.reduce((acc, roadmap) => acc + roadmap.totalSteps, 0);
-  const completedSteps = mockRoadmaps.reduce((acc, roadmap) => acc + roadmap.completedSteps, 0);
-  const averageProgress = mockRoadmaps.length > 0 
-    ? Math.round(mockRoadmaps.reduce((acc, roadmap) => acc + roadmap.progress, 0) / mockRoadmaps.length)
-    : 0;
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [stats, setStats] = useState<RoadmapStats>({
+    totalRoadmaps: 0,
+    totalSteps: 0,
+    completedSteps: 0,
+    averageProgress: 0,
+    totalHours: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [deletingRoadmap, setDeletingRoadmap] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [roadmapsResponse, statsResponse] = await Promise.all([
+        getUserRoadmaps(),
+        getRoadmapStats()
+      ]);
+      
+      setRoadmaps(roadmapsResponse.roadmaps);
+      setStats(statsResponse.stats);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteRoadmap = async (roadmapId: string) => {
+    if (!confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingRoadmap(roadmapId);
+      await deleteRoadmap(roadmapId);
+      
+      // Remove from local state
+      setRoadmaps(prev => prev.filter(roadmap => roadmap._id !== roadmapId));
+      
+      // Refresh stats
+      const statsResponse = await getRoadmapStats();
+      setStats(statsResponse.stats);
+    } catch (error) {
+      console.error('Error deleting roadmap:', error);
+      alert('Failed to delete roadmap. Please try again.');
+    } finally {
+      setDeletingRoadmap(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-xl">S</span>
+          </div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -31,7 +92,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <div className="flex items-center">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center mr-4">
@@ -39,7 +100,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Active Roadmaps</p>
-                <p className="text-2xl font-bold text-gray-900">{mockRoadmaps.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalRoadmaps}</p>
               </div>
             </div>
           </Card>
@@ -51,7 +112,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Completed Steps</p>
-                <p className="text-2xl font-bold text-gray-900">{completedSteps}/{totalSteps}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.completedSteps}/{stats.totalSteps}</p>
               </div>
             </div>
           </Card>
@@ -59,11 +120,23 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <Card>
             <div className="flex items-center">
               <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
-                <div className="w-6 h-6 text-white font-bold">{averageProgress}%</div>
+                <div className="w-6 h-6 text-white font-bold">{stats.averageProgress}%</div>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Average Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{averageProgress}%</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.averageProgress}%</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Hours</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalHours}h</p>
               </div>
             </div>
           </Card>
@@ -72,20 +145,35 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         {/* Roadmaps Section */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Your Learning Roadmaps</h2>
-          <Button onClick={() => onNavigate('create-roadmap')}>
+          <Button onClick={() => navigate('/create-roadmap')}>
             <Plus className="w-4 h-4 mr-2" />
             Create New Roadmap
           </Button>
         </div>
 
-        {mockRoadmaps.length > 0 ? (
+        {roadmaps.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockRoadmaps.map((roadmap) => (
-              <RoadmapCard 
-                key={roadmap.id} 
-                roadmap={roadmap} 
-                onView={(roadmapId) => onNavigate('roadmap', roadmapId)}
-              />
+            {roadmaps.map((roadmap) => (
+              <div key={roadmap._id} className="relative group">
+                <RoadmapCard 
+                  roadmap={roadmap} 
+                  onView={(roadmapId) => navigate(`/roadmap/${roadmapId}`)}
+                />
+                
+                {/* Delete button */}
+                <button
+                  onClick={() => handleDeleteRoadmap(roadmap._id)}
+                  disabled={deletingRoadmap === roadmap._id}
+                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50"
+                  title="Delete roadmap"
+                >
+                  {deletingRoadmap === roadmap._id ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             ))}
           </div>
         ) : (
@@ -97,7 +185,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <p className="text-gray-600 mb-6">
               Create your first learning roadmap to get started on your skill development journey.
             </p>
-            <Button onClick={() => onNavigate('create-roadmap')}>
+            <Button onClick={() => navigate('/create-roadmap')}>
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Roadmap
             </Button>

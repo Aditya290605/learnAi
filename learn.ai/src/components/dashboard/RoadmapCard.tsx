@@ -2,7 +2,7 @@ import { Calendar, Clock, TrendingUp } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Button } from '../ui/Button';
-import { Roadmap } from '../../types';
+import { Roadmap } from '../../utils/roadmapApi';
 
 interface RoadmapCardProps {
   roadmap: Roadmap;
@@ -58,7 +58,7 @@ export function RoadmapCard({ roadmap, onView }: RoadmapCardProps) {
         <Button 
           variant="outline" 
           className="w-full group-hover:border-blue-500 group-hover:text-blue-600"
-          onClick={() => onView(roadmap.id)}
+          onClick={() => onView(roadmap._id)}
         >
           View Roadmap
         </Button>

@@ -1,18 +1,15 @@
-import { User, LogOut, Settings } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { User, LogOut } from 'lucide-react';
 import { getCurrentUser, signOut } from '../../utils/auth';
 
-interface NavbarProps {
-  onNavigate: (page: string) => void;
-  currentPage: string;
-}
-
-export function Navbar({ onNavigate, currentPage }: NavbarProps) {
+export function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = getCurrentUser();
 
   const handleSignOut = async () => {
     await signOut();
-    onNavigate('home');
+    navigate('/');
   };
 
   return (
@@ -21,7 +18,7 @@ export function Navbar({ onNavigate, currentPage }: NavbarProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <button 
-            onClick={() => onNavigate('dashboard')} 
+            onClick={() => navigate('/dashboard')} 
             className="flex items-center space-x-2"
           >
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -35,9 +32,9 @@ export function Navbar({ onNavigate, currentPage }: NavbarProps) {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             <button
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => navigate('/dashboard')}
               className={`text-sm font-medium transition-colors ${
-                currentPage === 'dashboard'
+                location.pathname === '/dashboard'
                   ? 'text-blue-600'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -45,9 +42,9 @@ export function Navbar({ onNavigate, currentPage }: NavbarProps) {
               Dashboard
             </button>
             <button
-              onClick={() => onNavigate('create-roadmap')}
+              onClick={() => navigate('/create-roadmap')}
               className={`text-sm font-medium transition-colors ${
-                currentPage === 'create-roadmap'
+                location.pathname === '/create-roadmap'
                   ? 'text-blue-600'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -67,7 +64,7 @@ export function Navbar({ onNavigate, currentPage }: NavbarProps) {
                 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => onNavigate('profile')}
+                    onClick={() => navigate('/profile')}
                     className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Profile"
                   >
