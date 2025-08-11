@@ -1,7 +1,7 @@
 export const AUTH_TOKEN_KEY = 'skillpath_auth_token';
 export const USER_DATA_KEY = 'skillpath_user_data';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL ;
 
 export interface AuthResponse {
   success: boolean;
