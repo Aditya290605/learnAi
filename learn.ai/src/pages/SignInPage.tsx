@@ -43,7 +43,7 @@ export function SignInPage({ onNavigate }: SignInPageProps) {
       if (result.success) {
         onNavigate('dashboard');
       } else {
-        setErrors({ email: '', password: result.error || 'Sign in failed' });
+        setErrors({ email: '', password: result.message || 'Sign in failed' });
       }
     } catch (error) {
       setErrors({ email: '', password: 'Something went wrong. Please try again.' });
@@ -76,7 +76,7 @@ export function SignInPage({ onNavigate }: SignInPageProps) {
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               error={errors.email}
-              placeholder="demo@skillpath.com"
+              placeholder="Enter your email"
             />
             
             <Input
@@ -85,7 +85,7 @@ export function SignInPage({ onNavigate }: SignInPageProps) {
               value={formData.password}
               onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
               error={errors.password}
-              placeholder="password"
+              placeholder="Enter your password"
             />
 
             <Button type="submit" className="w-full" loading={loading}>
@@ -99,14 +99,6 @@ export function SignInPage({ onNavigate }: SignInPageProps) {
               <button onClick={() => onNavigate('signup')} className="text-blue-600 hover:text-blue-500 font-medium">
                 Sign up
               </button>
-            </p>
-          </div>
-          
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Demo credentials:</strong><br />
-              Email: demo@skillpath.com<br />
-              Password: password
             </p>
           </div>
         </Card>
