@@ -1,14 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { signUp } from '../utils/auth';
 
-interface SignUpPageProps {
-  onNavigate: (page: string) => void;
-}
-
-export function SignUpPage({ onNavigate }: SignUpPageProps) {
+export function SignUpPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -47,7 +45,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
       const result = await signUp(formData.name, formData.email, formData.password);
       
       if (result.success) {
-        onNavigate('dashboard');
+        navigate('/dashboard');
       } else {
         setErrors({ name: '', email: '', password: result.message || 'Sign up failed' });
       }
@@ -62,7 +60,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <button onClick={() => onNavigate('home')} className="flex items-center justify-center space-x-2 mb-8">
+          <button onClick={() => navigate('/')} className="flex items-center justify-center space-x-2 mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-2xl">S</span>
             </div>
@@ -111,7 +109,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <button onClick={() => onNavigate('signin')} className="text-blue-600 hover:text-blue-500 font-medium">
+              <button onClick={() => navigate('/signin')} className="text-blue-600 hover:text-blue-500 font-medium">
                 Sign in
               </button>
             </p>

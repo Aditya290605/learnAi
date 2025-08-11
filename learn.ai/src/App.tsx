@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from './components/layout/Navbar';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
@@ -9,12 +10,9 @@ import { RoadmapViewerPage } from './pages/RoadmapViewerPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { isAuthenticated, refreshUserData } from './utils/auth';
 
-type Page = 'home' | 'signin' | 'signup' | 'dashboard' | 'create-roadmap' | 'roadmap' | 'profile';
-
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -24,17 +22,16 @@ function App() {
           // Try to refresh user data to ensure token is still valid
           const user = await refreshUserData();
           if (user) {
-            setCurrentPage('dashboard');
+            setIsAuth(true);
           } else {
-            // Token is invalid, stay on home page
-            setCurrentPage('home');
+            setIsAuth(false);
           }
         } else {
-          setCurrentPage('home');
+          setIsAuth(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        setCurrentPage('home');
+        setIsAuth(false);
       } finally {
         setIsLoading(false);
       }
@@ -42,36 +39,6 @@ function App() {
 
     initializeAuth();
   }, []);
-
-  const handleNavigate = (page: string, roadmapId?: string) => {
-    setCurrentPage(page as Page);
-    if (roadmapId) {
-      setSelectedRoadmapId(roadmapId);
-    }
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <HomePage onNavigate={handleNavigate} />;
-      case 'signin':
-        return <SignInPage onNavigate={handleNavigate} />;
-      case 'signup':
-        return <SignUpPage onNavigate={handleNavigate} />;
-      case 'dashboard':
-        return <DashboardPage onNavigate={handleNavigate} />;
-      case 'create-roadmap':
-        return <CreateRoadmapPage onNavigate={handleNavigate} />;
-      case 'roadmap':
-        return <RoadmapViewerPage roadmapId={selectedRoadmapId} onNavigate={handleNavigate} />;
-      case 'profile':
-        return <ProfilePage onNavigate={handleNavigate} />;
-      default:
-        return <HomePage onNavigate={handleNavigate} />;
-    }
-  };
-
-  const showNavbar = currentPage !== 'home' && currentPage !== 'signin' && currentPage !== 'signup';
 
   if (isLoading) {
     return (
@@ -87,10 +54,36 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {showNavbar && <Navbar onNavigate={handleNavigate} currentPage={currentPage} />}
-      {renderPage()}
-    </div>
+    <Router>
+      <Layout>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={
+            isAuth ? <Navigate to="/dashboard" replace /> : <HomePage />
+          } />
+          <Route path="/signin" element={
+            isAuth ? <Navigate to="/dashboard" replace /> : <SignInPage />
+          } />
+          <Route path="/signup" element={
+            isAuth ? <Navigate to="/dashboard" replace /> : <SignUpPage />
+          } />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            isAuth ? <DashboardPage /> : <Navigate to="/signin" replace />
+          } />
+          <Route path="/create-roadmap" element={
+            isAuth ? <CreateRoadmapPage /> : <Navigate to="/signin" replace />
+          } />
+          <Route path="/roadmap/:roadmapId" element={
+            isAuth ? <RoadmapViewerPage /> : <Navigate to="/signin" replace />
+          } />
+          <Route path="/profile" element={
+            isAuth ? <ProfilePage /> : <Navigate to="/signin" replace />
+          } />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
