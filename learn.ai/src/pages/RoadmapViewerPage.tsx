@@ -11,10 +11,12 @@ import ReactFlow, {
   Connection,
   EdgeTypes,
   NodeTypes,
-  Position
+  Position,
+  MarkerType,
+  Panel
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { ArrowLeft, CheckCircle, Circle, Play, ExternalLink, Loader2, BookOpen, Clock, Users, Star } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Circle, Play, ExternalLink, Loader2, BookOpen, Clock, Users, Star, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { ProgressBar } from '../components/ui/ProgressBar';
@@ -25,118 +27,150 @@ const RoadmapNode = ({ data }: { data: any }) => {
   const { step, onToggleComplete, onGenerateResources, generatingResources, isActive } = data;
   
   return (
-    <div className={`bg-white border-2 rounded-xl p-4 shadow-lg min-w-[280px] max-w-[320px] transition-all duration-300 ${
+    <div className={`bg-white border-2 rounded-xl p-4 shadow-lg w-full max-w-none transition-all duration-300 relative ${
       step.completed 
-        ? 'border-green-500 bg-green-50' 
+        ? 'border-green-500 bg-green-50 shadow-green-200' 
         : isActive 
-          ? 'border-blue-500 bg-blue-50 shadow-xl' 
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-blue-500 bg-blue-50 shadow-blue-200 shadow-xl' 
+          : 'border-gray-200 hover:border-gray-300 hover:shadow-xl'
     }`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onToggleComplete(step.id)}
-            className={`p-1 rounded-full transition-colors ${
-              step.completed 
-                ? 'text-green-600 hover:text-green-700' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            {step.completed ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-          </button>
-          <h3 className={`font-semibold text-sm ${step.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-            {step.title}
-          </h3>
+      {/* Flowchart connector points */}
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
+      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
+      
+      {/* Step Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+            step.completed 
+              ? 'bg-green-500 text-white' 
+              : isActive
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-600'
+          }`}>
+            {step.id.replace('step_', '')}
+          </div>
+          <div>
+            <h3 className={`text-lg font-semibold ${step.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+              {step.title}
+            </h3>
+            <p className={`text-sm text-gray-600 ${step.completed ? 'line-through' : ''}`}>
+              {step.description}
+            </p>
+          </div>
         </div>
-        {isActive && !step.completed && (
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-blue-600 font-medium">Current</span>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <Clock className="w-4 h-4" />
+            <span>{step.duration}</span>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            step.completed 
+              ? 'bg-green-100 text-green-700' 
+              : isActive
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700'
+          }`}>
+            {step.completed ? '✓ Completed' : isActive ? '🔄 In Progress' : '⏳ Pending'}
+          </span>
+          {isActive && !step.completed && (
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-blue-600 font-medium">Current</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Prerequisites */}
+        {step.prerequisites.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              Prerequisites ({step.prerequisites.length})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {step.prerequisites.map((prereq: string, index: number) => (
+                <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full border border-blue-200">
+                  {prereq}
+                </span>
+              ))}
+            </div>
           </div>
         )}
-      </div>
-      
-      <p className={`text-xs text-gray-600 mb-3 ${step.completed ? 'line-through' : ''}`}>
-        {step.description}
-      </p>
-      
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-        <div className="flex items-center space-x-1">
-          <Clock className="w-3 h-3" />
-          <span>{step.duration}</span>
-        </div>
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          step.completed 
-            ? 'bg-green-100 text-green-700' 
-            : isActive
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-700'
-        }`}>
-          {step.completed ? 'Completed' : isActive ? 'In Progress' : 'Pending'}
-        </span>
-      </div>
 
-      {step.prerequisites.length > 0 && (
-        <div className="mb-3">
-          <p className="text-xs font-medium text-gray-700 mb-1">Prerequisites:</p>
-          <div className="flex flex-wrap gap-1">
-            {step.prerequisites.map((prereq: string, index: number) => (
-              <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                {prereq}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {step.resources && step.resources.length > 0 && (
-        <div className="mb-3">
-          <p className="text-xs font-medium text-gray-700 mb-2 flex items-center">
-            <BookOpen className="w-3 h-3 mr-1" />
-            Resources ({step.resources.length})
-          </p>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {step.resources.map((resource: YoutubeVideo) => (
-              <a
-                key={resource.id}
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 p-2 bg-gray-50 rounded text-xs hover:bg-gray-100 transition-colors"
-              >
-                <img 
-                  src={resource.thumbnail} 
-                  alt={resource.title}
-                  className="w-8 h-6 object-cover rounded"
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/80x60/cccccc/666666?text=Video';
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 truncate font-medium">{resource.title}</p>
-                  <p className="text-gray-500 text-xs">{resource.channel} • {resource.duration} • {resource.views}</p>
+        {/* Resources */}
+        {step.resources && step.resources.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Learning Resources ({step.resources.length})
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto">
+              {step.resources.slice(0, 4).map((resource: YoutubeVideo) => (
+                <a
+                  key={resource.id}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                >
+                  <img 
+                    src={resource.thumbnail} 
+                    alt={resource.title}
+                    className="w-16 h-12 object-cover rounded"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/80x60/cccccc/666666?text=Video';
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 font-medium text-sm line-clamp-2">{resource.title}</p>
+                    <p className="text-gray-500 text-xs mt-1">{resource.channel}</p>
+                    <p className="text-gray-400 text-xs">{resource.duration} • {resource.views}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                </a>
+              ))}
+              {step.resources.length > 4 && (
+                <div className="col-span-full text-center py-2">
+                  <span className="text-sm text-gray-500">+{step.resources.length - 4} more resources</span>
                 </div>
-                <ExternalLink className="w-3 h-3 text-gray-400" />
-              </a>
-            ))}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      <button
-        onClick={() => onGenerateResources(step.id)}
-        disabled={generatingResources === step.id}
-        className="w-full mt-2 px-3 py-1 bg-blue-50 text-blue-600 text-xs rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
-      >
-        {generatingResources === step.id ? (
-          <div className="flex items-center justify-center">
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-            Generating...
-          </div>
-        ) : (
-          'Generate More Resources'
         )}
-      </button>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex space-x-3 mt-6 pt-4 border-t border-gray-200">
+        <button
+          onClick={() => onToggleComplete(step.id)}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            step.completed
+              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
+          }`}
+        >
+          {step.completed ? '✓ Mark Incomplete' : '✓ Mark Complete'}
+        </button>
+
+        <button
+          onClick={() => onGenerateResources(step.id)}
+          disabled={generatingResources === step.id}
+          className="px-4 py-2 bg-purple-50 text-purple-600 text-sm rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 border border-purple-200"
+        >
+          {generatingResources === step.id ? (
+            <div className="flex items-center justify-center">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating...
+            </div>
+          ) : (
+            '🔍 Generate More Resources'
+          )}
+        </button>
+      </div>
     </div>
   );
 };
@@ -154,6 +188,7 @@ export function RoadmapViewerPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   useEffect(() => {
     if (roadmapId) {
@@ -175,7 +210,7 @@ export function RoadmapViewerPage() {
   };
 
   const createFlowElements = (roadmapData: Roadmap) => {
-    // Create a better layout - vertical flow with some horizontal spacing
+    // Create a clean vertical layout with proper spacing
     const newNodes: Node[] = roadmapData.steps.map((step, index) => {
       const isActive = !step.completed && (index === 0 || roadmapData.steps[index - 1].completed);
       
@@ -183,8 +218,8 @@ export function RoadmapViewerPage() {
         id: step.id,
         type: 'roadmapNode',
         position: { 
-          x: (index % 2) * 350, 
-          y: Math.floor(index / 2) * 200 
+          x: 200, // Center horizontally
+          y: index * 250 + 50 // Proper vertical spacing to prevent overlap
         },
         data: {
           step,
@@ -194,23 +229,49 @@ export function RoadmapViewerPage() {
           isActive
         },
         sourcePosition: Position.Bottom,
-        targetPosition: Position.Top
+        targetPosition: Position.Top,
+        style: {
+          filter: step.completed ? 'grayscale(0.3)' : 'none',
+          width: '500px',
+          minWidth: '450px'
+        }
       };
     });
 
-    const newEdges: Edge[] = roadmapData.steps.slice(1).map((step, index) => ({
-      id: `edge-${index}`,
-      source: roadmapData.steps[index].id,
-      target: step.id,
-      type: 'smoothstep',
-      style: { 
-        stroke: roadmapData.steps[index].completed ? '#10B981' : '#3B82F6', 
-        strokeWidth: 3 
-      },
-      animated: roadmapData.steps[index].completed,
-      label: roadmapData.steps[index].completed ? '✓' : '',
-      labelStyle: { fill: '#10B981', fontWeight: 'bold' }
-    }));
+    const newEdges: Edge[] = roadmapData.steps.slice(1).map((step, index) => {
+      const sourceStep = roadmapData.steps[index];
+      const isCompleted = sourceStep.completed;
+      
+      return {
+        id: `edge-${index}`,
+        source: sourceStep.id,
+        target: step.id,
+        type: 'straight', // Use straight lines for clean connections
+        style: { 
+          stroke: isCompleted ? '#10B981' : '#000000', 
+          strokeWidth: isCompleted ? 3 : 2
+        },
+        animated: isCompleted,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: isCompleted ? '#10B981' : '#000000'
+        },
+        label: isCompleted ? '✓' : '',
+        labelStyle: { 
+          fill: isCompleted ? '#10B981' : '#000000', 
+          fontWeight: 'bold',
+          fontSize: '14px'
+        },
+        labelBgStyle: { 
+          fill: '#ffffff', 
+          fillOpacity: 0.9 
+        },
+        labelBgPadding: [4, 4],
+        labelBgBorderRadius: 4
+      };
+    });
 
     setNodes(newNodes);
     setEdges(newEdges);
@@ -234,6 +295,9 @@ export function RoadmapViewerPage() {
             data: {
               ...node.data,
               step: response.roadmap.steps.find(s => s.id === stepId)
+            },
+            style: {
+              filter: !step.completed ? 'grayscale(0.3)' : 'none'
             }
           };
         }
@@ -243,15 +307,27 @@ export function RoadmapViewerPage() {
       // Update edges to show completion
       setEdges(prev => prev.map(edge => {
         if (edge.source === stepId) {
+          const isCompleted = !step.completed;
+          const stepIndex = roadmap.steps.findIndex(s => s.id === stepId);
           return {
             ...edge,
             style: { 
-              stroke: !step.completed ? '#10B981' : '#3B82F6', 
-              strokeWidth: 3 
+              stroke: isCompleted ? '#10B981' : '#000000', 
+              strokeWidth: isCompleted ? 3 : 2
             },
-            animated: !step.completed,
-            label: !step.completed ? '✓' : '',
-            labelStyle: { fill: '#10B981', fontWeight: 'bold' }
+            animated: isCompleted,
+            label: isCompleted ? '✓' : '',
+            labelStyle: { 
+              fill: isCompleted ? '#10B981' : '#000000', 
+              fontWeight: 'bold',
+              fontSize: '14px'
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: isCompleted ? '#10B981' : '#000000'
+            }
           };
         }
         return edge;
@@ -429,7 +505,7 @@ export function RoadmapViewerPage() {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-200px)]">
         {/* React Flow Canvas */}
-        <div className="flex-1 bg-gray-50">
+        <div className="flex-1 bg-white relative">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -438,12 +514,55 @@ export function RoadmapViewerPage() {
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             fitView
-            fitViewOptions={{ padding: 0.2 }}
+            fitViewOptions={{ padding: 0.3 }}
             attributionPosition="bottom-left"
             onNodeClick={(event, node) => setSelectedStep(node.id)}
+            onInit={setReactFlowInstance}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+            minZoom={0.3}
+            maxZoom={1.5}
+            className="bg-transparent"
           >
-            <Background />
-            <Controls />
+            <Background 
+              color="#e5e7eb" 
+              gap={30} 
+              size={1}
+              className="opacity-30"
+            />
+            <Controls 
+              className="bg-white rounded-lg shadow-lg border border-gray-200"
+              showZoom={true}
+              showFitView={true}
+              showInteractive={false}
+            />
+            
+            {/* Custom Panel for Flow Controls */}
+            <Panel position="top-right" className="bg-white rounded-lg shadow-lg border border-gray-200 p-2">
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    if (reactFlowInstance) {
+                      reactFlowInstance.fitView({ padding: 0.3 });
+                    }
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="Fit View"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (reactFlowInstance) {
+                      reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
+                    }
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  title="Reset View"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+            </Panel>
           </ReactFlow>
         </div>
 
