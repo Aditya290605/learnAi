@@ -1,6 +1,6 @@
 import { AUTH_TOKEN_KEY } from './auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface CreateRoadmapForm {
   skill: string;
