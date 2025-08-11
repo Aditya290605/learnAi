@@ -3,13 +3,14 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { RoadmapCard } from '../components/dashboard/RoadmapCard';
 import { mockRoadmaps } from '../mockData/roadmaps';
-import { mockUser } from '../mockData/users';
+import { getCurrentUser } from '../utils/auth';
 
 interface DashboardPageProps {
   onNavigate: (page: string, roadmapId?: string) => void;
 }
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
+  const currentUser = getCurrentUser();
   const totalSteps = mockRoadmaps.reduce((acc, roadmap) => acc + roadmap.totalSteps, 0);
   const completedSteps = mockRoadmaps.reduce((acc, roadmap) => acc + roadmap.completedSteps, 0);
   const averageProgress = mockRoadmaps.length > 0 
@@ -22,7 +23,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {mockUser.name}! 👋
+            Welcome back, {currentUser?.name || 'Learner'}! 👋
           </h1>
           <p className="text-gray-600">
             Continue your learning journey and track your progress across all your roadmaps.

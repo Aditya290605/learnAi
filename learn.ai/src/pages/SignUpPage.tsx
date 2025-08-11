@@ -49,7 +49,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
       if (result.success) {
         onNavigate('dashboard');
       } else {
-        setErrors({ name: '', email: '', password: result.error || 'Sign up failed' });
+        setErrors({ name: '', email: '', password: result.message || 'Sign up failed' });
       }
     } catch (error) {
       setErrors({ name: '', email: '', password: 'Something went wrong. Please try again.' });
