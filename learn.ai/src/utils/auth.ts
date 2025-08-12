@@ -32,6 +32,17 @@ export interface User {
   createdAt: string;
 }
 
+// Emit a custom event so the app can react to auth state changes immediately
+const emitAuthChanged = (): void => {
+  try {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth-changed'));
+    }
+  } catch {
+    // no-op
+  }
+};
+
 // Helper function to make API requests
 const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -72,6 +83,7 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
     if (response.success && response.data) {
       localStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(response.data.user));
+      emitAuthChanged();
     }
 
     return response;
@@ -93,6 +105,7 @@ export const signUp = async (name: string, email: string, password: string): Pro
     if (response.success && response.data) {
       localStorage.setItem(AUTH_TOKEN_KEY, response.data.token);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(response.data.user));
+      emitAuthChanged();
     }
 
     return response;
@@ -115,6 +128,7 @@ export const signOut = async (): Promise<void> => {
     // Always clear local storage
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USER_DATA_KEY);
+    emitAuthChanged();
   }
 };
 

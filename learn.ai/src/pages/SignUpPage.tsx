@@ -45,7 +45,9 @@ export function SignUpPage() {
       const result = await signUp(formData.name, formData.email, formData.password);
       
       if (result.success) {
-        navigate('/dashboard');
+        navigate('/dashboard', {
+          state: { successMessage: 'Account created successfully. Welcome! 🎉' }
+        });
       } else {
         setErrors({ name: '', email: '', password: result.message || 'Sign up failed' });
       }

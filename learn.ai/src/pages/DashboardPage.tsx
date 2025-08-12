@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, BookOpen, TrendingUp, Clock, Trash2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Plus, BookOpen, TrendingUp, Clock, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { RoadmapCard } from '../components/dashboard/RoadmapCard';
@@ -9,6 +9,7 @@ import { getUserRoadmaps, getRoadmapStats, deleteRoadmap, Roadmap, RoadmapStats 
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = getCurrentUser();
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
   const [stats, setStats] = useState<RoadmapStats>({
@@ -20,10 +21,23 @@ export function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [deletingRoadmap, setDeletingRoadmap] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Show success toast if navigated here from sign in/up
+  useEffect(() => {
+    const state = (location.state || {}) as { successMessage?: string };
+    if (state.successMessage) {
+      setSuccessMessage(state.successMessage);
+      // Clear the navigation state so the message doesn't persist on refresh/back
+      navigate(location.pathname, { replace: true });
+      const timer = setTimeout(() => setSuccessMessage(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const fetchDashboardData = async () => {
     try {
@@ -80,6 +94,20 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Success Toast */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="flex items-start space-x-3 bg-white border border-green-200 shadow-xl rounded-xl p-4 w-80">
+            <div className="mt-0.5">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Success</p>
+              <p className="text-sm text-gray-700">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
