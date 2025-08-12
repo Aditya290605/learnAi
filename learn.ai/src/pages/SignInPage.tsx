@@ -39,7 +39,9 @@ export function SignInPage() {
       const result = await signIn(formData.email, formData.password);
       
       if (result.success) {
-        navigate('/dashboard');
+        navigate('/dashboard', {
+          state: { successMessage: 'Signed in successfully. Welcome back!' }
+        });
       } else {
         setErrors({ email: '', password: result.message || 'Sign in failed' });
       }

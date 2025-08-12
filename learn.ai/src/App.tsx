@@ -40,6 +40,22 @@ function App() {
     initializeAuth();
   }, []);
 
+  // React instantly to auth changes (sign in, sign up, sign out) without full reload
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      setIsAuth(isAuthenticated());
+    };
+
+    window.addEventListener('auth-changed', handleAuthChanged);
+    // Also handle storage events for multi-tab sync
+    window.addEventListener('storage', handleAuthChanged);
+
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChanged);
+      window.removeEventListener('storage', handleAuthChanged);
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
